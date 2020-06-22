@@ -21,13 +21,22 @@ namespace UnityStandardAssets._2D
         private Rigidbody2D m_Rigidbody2D;
         private bool m_FacingRight = true;  // For determining which way the player is currently facing.
 
+        private bool spawnDust;
+        public GameObject DustParticles;
+        private Animator camAnim;
+        private AudioSource source;
+        public AudioClip landingSound;
+        public AudioClip jumpingSound;
+
         private void Awake()
         {
             // Setting up references.
             m_GroundCheck = transform.Find("GroundCheck");
             m_CeilingCheck = transform.Find("CeilingCheck");
             m_Anim = GetComponent<Animator>();
+            camAnim = Camera.main.GetComponent<Animator>();
             m_Rigidbody2D = GetComponent<Rigidbody2D>();
+            source = GetComponent<AudioSource>();
         }
 
 
@@ -47,6 +56,30 @@ namespace UnityStandardAssets._2D
 
             // Set the vertical animation
             m_Anim.SetFloat("vSpeed", m_Rigidbody2D.velocity.y);
+        }
+
+        private void Update() {
+            if (m_Grounded)
+            {
+                if (spawnDust)
+                {
+                    // Player lands on the ground.
+                    var pitch = UnityEngine.Random.Range(0.8f, 1.2f);
+                    source.pitch = pitch;
+                    source.clip = landingSound;
+                    source.Play();
+                    camAnim.SetTrigger("shake");
+                    Instantiate(DustParticles, m_GroundCheck.position, Quaternion.identity);
+                    spawnDust = false;
+                }
+            }
+            else // Player leaves ground
+            {
+                spawnDust = true;
+                source.clip = jumpingSound;
+                source.pitch = 1f;
+                source.Play();
+            }
         }
 
 

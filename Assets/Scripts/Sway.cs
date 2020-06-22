@@ -16,7 +16,7 @@ public class Sway : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D other) {
         if (other.CompareTag("Player"))
         {
-            Debug.Log("Enter grass");
+            //Enter grass
             anim.SetTrigger(touchHash);
         }
     }
@@ -24,7 +24,7 @@ public class Sway : MonoBehaviour
     private void OnTriggerExit2D(Collider2D other) {
         if (other.CompareTag("Player"))
         {
-            Debug.Log("Exit grass");
+            // Exit Grass
             anim.SetTrigger(touchHash);
         }
     }
