@@ -5,6 +5,8 @@ using UnityStandardAssets._2D;
 
 public class Reddy : MonoBehaviour
 {
+    private float reddyWorldHeight = 0.25f;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -22,12 +24,13 @@ public class Reddy : MonoBehaviour
         {
             PlatformerCharacter2D player = other.gameObject.GetComponent<PlatformerCharacter2D>();
 
-            if(player.state == State.falling)
+            //Player lands on top of Reddy.
+            if(player.state == State.falling && other.gameObject.transform.position.y > transform.position.y + reddyWorldHeight)
             {
                 other.gameObject.GetComponent<PlatformerCharacter2D>().Jump();
 
                 //TODO animate the death 
-                
+
                 Destroy(gameObject);
             }
             else

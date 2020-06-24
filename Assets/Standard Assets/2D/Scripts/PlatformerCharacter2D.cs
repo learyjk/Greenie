@@ -13,6 +13,9 @@ namespace UnityStandardAssets._2D
         [Range(0, 1)] [SerializeField] private float m_CrouchSpeed = .36f;  // Amount of maxSpeed applied to crouching movement. 1 = 100%
         [SerializeField] private bool m_AirControl = false;                 // Whether or not a player can steer while jumping;
         [SerializeField] private LayerMask m_WhatIsGround;                  // A mask determining what is ground to the character
+        [SerializeField] private AudioSource land;
+        [SerializeField] private AudioSource jump;
+
 
         private Transform m_GroundCheck;    // A position marking where to check if the player is grounded.
         const float k_GroundedRadius = .2f; // Radius of the overlap circle to determine if grounded
@@ -26,9 +29,7 @@ namespace UnityStandardAssets._2D
         private bool spawnDust;
         public GameObject DustParticles;
         private Animator camAnim;
-        private AudioSource source;
-        public AudioClip landingSound;
-        public AudioClip jumpingSound;
+        
         public State state = State.idle;
         
         private void Awake()
@@ -39,7 +40,6 @@ namespace UnityStandardAssets._2D
             m_Anim = GetComponent<Animator>();
             camAnim = Camera.main.GetComponent<Animator>();
             m_Rigidbody2D = GetComponent<Rigidbody2D>();
-            source = GetComponent<AudioSource>();
         }
 
 
@@ -65,24 +65,15 @@ namespace UnityStandardAssets._2D
             {
                 if (spawnDust)
                 {
-                    // Player lands on the ground.
-                    var pitch = UnityEngine.Random.Range(0.8f, 1.2f);
-                    source.pitch = pitch;
-                    source.clip = landingSound;
-                    source.Play();
-                    camAnim.SetTrigger("shake");
-                    Instantiate(DustParticles, m_GroundCheck.position, Quaternion.identity);
+                    Land();
                     spawnDust = false;
                 }
             }
             else // Player leaves ground
             {
                 spawnDust = true;
-                // source.clip = jumpingSound;
-                // source.pitch = 1f;
-                // source.Play();
-            }
-            
+                
+            }  
         }
 
 
@@ -135,6 +126,21 @@ namespace UnityStandardAssets._2D
             m_Grounded = false;
             m_Rigidbody2D.AddForce(new Vector2(0f, m_JumpForce));
             state = State.jumping;
+
+            var pitch = UnityEngine.Random.Range(0.8f, 1.2f);
+            jump.pitch = pitch;
+            jump.Play();
+            Instantiate(DustParticles, m_GroundCheck.position, Quaternion.identity);
+        }
+
+        public void Land()
+        {
+            // Player lands on the ground.
+            var pitch = UnityEngine.Random.Range(0.8f, 1.2f);
+            land.pitch = pitch;
+            land.Play();
+            camAnim.SetTrigger("shake");
+            Instantiate(DustParticles, m_GroundCheck.position, Quaternion.identity);
         }
 
         public void Damage(GameObject other)
@@ -145,15 +151,15 @@ namespace UnityStandardAssets._2D
             {
                 //Reddy is to the right so damage Greenie left
                 Input.ResetInputAxes();
-                m_Rigidbody2D.AddForce(new Vector2(-2000.0f, m_Rigidbody2D.velocity.y));
-                //m_Rigidbody2D.velocity = new Vector2(-1f, m_Rigidbody2D.velocity.y);
+                m_Rigidbody2D.velocity = new Vector2(-10.0f, m_Rigidbody2D.velocity.y);
+                //m_Rigidbody2D.AddForce(new Vector2(-400.0f, m_Rigidbody2D.velocity.y));  
             }
             else
             {
                 //Reddy is to the left so damage Greenie right
                 Input.ResetInputAxes();
-                m_Rigidbody2D.AddForce(new Vector2(2000.0f, m_Rigidbody2D.velocity.y));
-                //m_Rigidbody2D.velocity = new Vector2(1f, m_Rigidbody2D.velocity.y);
+                //m_Rigidbody2D.AddForce(new Vector2(400f, m_Rigidbody2D.velocity.y));
+                m_Rigidbody2D.velocity = new Vector2(10.0f, m_Rigidbody2D.velocity.y);
             }
         }
 
@@ -162,7 +168,6 @@ namespace UnityStandardAssets._2D
         {
             // Switch the way the player is labelled as facing.
             m_FacingRight = !m_FacingRight;
-
             transform.Rotate(0f, 180f, 0f);
         }
 
@@ -186,7 +191,7 @@ namespace UnityStandardAssets._2D
             else if (state == State.hurt)
             {
                 // velocity is near zero.
-                if (Mathf.Abs(m_Rigidbody2D.velocity.x) < 0.1f)
+                if (Mathf.Abs(m_Rigidbody2D.velocity.x) < 0.5f)
                 {
                     state = State.idle;
                 }
