@@ -1,6 +1,8 @@
 using System;
 using UnityEngine;
 
+public enum State {idle, walking, jumping, falling, hurt}
+
 #pragma warning disable 649
 namespace UnityStandardAssets._2D
 {
@@ -27,7 +29,8 @@ namespace UnityStandardAssets._2D
         private AudioSource source;
         public AudioClip landingSound;
         public AudioClip jumpingSound;
-
+        public State state = State.idle;
+        
         private void Awake()
         {
             // Setting up references.
@@ -52,10 +55,9 @@ namespace UnityStandardAssets._2D
                 if (colliders[i].gameObject != gameObject)
                     m_Grounded = true;
             }
-            m_Anim.SetBool("Ground", m_Grounded);
-
-            // Set the vertical animation
-            m_Anim.SetFloat("vSpeed", m_Rigidbody2D.velocity.y);
+            m_Anim.SetInteger("state", (int)state);
+            velocityState();
+            
         }
 
         private void Update() {
@@ -76,10 +78,11 @@ namespace UnityStandardAssets._2D
             else // Player leaves ground
             {
                 spawnDust = true;
-                source.clip = jumpingSound;
-                source.pitch = 1f;
-                source.Play();
+                // source.clip = jumpingSound;
+                // source.pitch = 1f;
+                // source.Play();
             }
+            
         }
 
 
@@ -104,9 +107,6 @@ namespace UnityStandardAssets._2D
                 // Reduce the speed if crouching by the crouchSpeed multiplier
                 move = (crouch ? move*m_CrouchSpeed : move);
 
-                // The Speed animator parameter is set to the absolute value of the horizontal input.
-                m_Anim.SetFloat("Speed", Mathf.Abs(move));
-
                 // Move the character
                 m_Rigidbody2D.velocity = new Vector2(move*m_MaxSpeed, m_Rigidbody2D.velocity.y);
 
@@ -124,12 +124,36 @@ namespace UnityStandardAssets._2D
                 }
             }
             // If the player should jump...
-            if (m_Grounded && jump && m_Anim.GetBool("Ground"))
+            if (m_Grounded && jump)
             {
-                // Add a vertical force to the player.
-                m_Grounded = false;
-                m_Anim.SetBool("Ground", false);
-                m_Rigidbody2D.AddForce(new Vector2(0f, m_JumpForce));
+                Jump();
+            }
+        }
+
+        public void Jump()
+        {
+            m_Grounded = false;
+            m_Rigidbody2D.AddForce(new Vector2(0f, m_JumpForce));
+            state = State.jumping;
+        }
+
+        public void Damage(GameObject other)
+        {
+            state = State.hurt;
+            Debug.Log("Hurt greenie!");
+            if (transform.position.x < other.transform.position.x)
+            {
+                //Reddy is to the right so damage Greenie left
+                Input.ResetInputAxes();
+                m_Rigidbody2D.AddForce(new Vector2(-2000.0f, m_Rigidbody2D.velocity.y));
+                //m_Rigidbody2D.velocity = new Vector2(-1f, m_Rigidbody2D.velocity.y);
+            }
+            else
+            {
+                //Reddy is to the left so damage Greenie right
+                Input.ResetInputAxes();
+                m_Rigidbody2D.AddForce(new Vector2(2000.0f, m_Rigidbody2D.velocity.y));
+                //m_Rigidbody2D.velocity = new Vector2(1f, m_Rigidbody2D.velocity.y);
             }
         }
 
@@ -140,6 +164,43 @@ namespace UnityStandardAssets._2D
             m_FacingRight = !m_FacingRight;
 
             transform.Rotate(0f, 180f, 0f);
+        }
+
+        private void velocityState()
+        {
+            if (m_Rigidbody2D.velocity.y > 0.1f)
+            {
+                state = State.jumping;
+            }
+            else if (m_Rigidbody2D.velocity.y < -0.1f)
+            {
+                state = State.falling;
+            }
+            else if (state == State.falling)
+            {
+                if (m_Grounded)
+                {
+                    state = State.idle;
+                }
+            }
+            else if (state == State.hurt)
+            {
+                // velocity is near zero.
+                if (Mathf.Abs(m_Rigidbody2D.velocity.x) < 0.1f)
+                {
+                    state = State.idle;
+                }
+            }
+            else if (Mathf.Abs(m_Rigidbody2D.velocity.x) > Mathf.Epsilon)
+            {
+                //Moving
+                state = State.walking;
+            }
+            else
+            {
+                state = State.idle;
+            }
+
         }
     }
 }
