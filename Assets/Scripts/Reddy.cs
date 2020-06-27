@@ -13,7 +13,7 @@ public class Reddy : MonoBehaviour
     private float reddyWorldHeight = 0.25f;
     private Animator anim;
     private Camera cam;
-    [SerializeField] private AnimationClip deathAnim;
+    [SerializeField] private AnimationClip deathAnim = null;
     private Rigidbody2D rb;
 
     private bool faceLeft = true; //first frame flips if due to bad coding.
@@ -36,7 +36,7 @@ public class Reddy : MonoBehaviour
             // Reddy is in camera view.
             Move();
             AnimationUpdate();
-        }  
+        }
     }
 
     private void Move()

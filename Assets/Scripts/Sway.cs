@@ -14,7 +14,7 @@ public class Sway : MonoBehaviour
     }
 
     private void OnTriggerEnter2D(Collider2D other) {
-        if (other.CompareTag("Player"))
+        if (other.CompareTag("Player") || other.CompareTag("Enemy"))
         {
             //Enter grass
             anim.SetTrigger(touchHash);
@@ -22,17 +22,10 @@ public class Sway : MonoBehaviour
     }
 
     private void OnTriggerExit2D(Collider2D other) {
-        if (other.CompareTag("Player"))
+        if (other.CompareTag("Player") || other.CompareTag("Enemy"))
         {
             // Exit Grass
             anim.SetTrigger(touchHash);
         }
     }
-
-    // private void OnTriggerExit2D(Collider2D other) {
-    //     if (other.CompareTag("Player"))
-    //     {
-    //         anim.SetBool("isTouched", false);
-    //     }
-    // }
 }
