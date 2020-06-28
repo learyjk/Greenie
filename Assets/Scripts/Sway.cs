@@ -18,6 +18,7 @@ public class Sway : MonoBehaviour
         {
             //Enter grass
             anim.SetTrigger(touchHash);
+            //GameStatus.GetInstance().LoadScene("Level2");
         }
     }
 
